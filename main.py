@@ -10,6 +10,7 @@ class Asf:
         self.password = password
         self.headers = {'Authentication': self.password}
         self.check_password()
+        self.get_bots()
 
     def check_password(self):
         url = f'http://{self.address}/api/asf'
@@ -17,17 +18,19 @@ class Asf:
             while True:
                 req = requests.get(url, headers=self.headers)
                 if req.status_code == 200:
+                    print('Вы успешно авторизовались')
                     return True
                 else:
                     print('Вы ввели неверный пароль, введите пароль еще раз')
-                    self.set_password(input())
+                    password = input()
+                    self.set_password(password)
         except ConnectionError:
             print('Сервер не был найден, возможно неправильный адрес.')
             exit()
 
     def set_password(self, password):
         self.password = password
-        self.headers = {'Authentication': self.password}
+        self.headers = {'Authentication': password}
 
     def get_bots(self):
         self.bots = {}
@@ -42,29 +45,39 @@ class Asf:
 
     def get_badge(self, name:str = ''):
         print('Начал получать значки!')
-        if name:
-            url = f'http://{self.address}/api/Web/{self.bots[name]}/https://store.steampowered.com/replay'
-            requests.get(url, headers=self.headers)
-            result = name + ' Recieve Badge' if self.check_badge(name) else ' Error get badge!'
-            print(result)
-        else:
-            self.result = {}
-            for bot in self.bots:
-                url = f'http://{self.address}/api/Web/{bot}/https://store.steampowered.com/replay'
-                requests.get(url, headers=self.headers)
-                check = self.check_badge(bot)
-                self.result[bot] = check
-                if check:
-                    print(bot, 'recived badge')
+        try:
+            if name:
+                if name not in self.bots:
+                    print('Бот не был найден!')
                 else:
-                    print(bot, 'not recived badge')
-            self.save_file(self.result)
-        print('Закончил получение значков')
+                    url = f'http://{self.address}/api/Web/{name}/https://store.steampowered.com/replay'
+                    requests.get(url, headers=self.headers)
+                    result = name + ' Recieve Badge' if self.check_badge(name) else ' Error get badge!'
+                    print(result)
+            else:
+                self.result = {}
+                for bot in self.bots:
+                    url = f'http://{self.address}/api/Web/{bot}/https://store.steampowered.com/replay'
+                    requests.get(url, headers=self.headers)
+                    check = self.check_badge(bot)
+                    self.result[bot] = check
+                    if check:
+                        print(bot, 'recived badge')
+                    else:
+                        print(bot, 'not recived badge')
+                self.save_file(self.result)
+            print('Успешно закончил получение значков')
+        except ConnectionError:
+            print('Проблемы с интернетом или сервер ASF упал.')
 
     def check_badge(self, name:str = '', badge='64'):
         if name:
+            if name not in self.bots:
+                print('Бот не был найден!')
+                return False
             url = f'https://steamcommunity.com/profiles/{self.bots[name]}/badges/{badge}'
             req = requests.get(url)
+            print('Recived' if req.url == url else 'Not Recived')
             return True if req.url == url else False
         else:
             self.result = {}
@@ -79,6 +92,9 @@ class Asf:
                 time.sleep(.5)
             self.save_file(self.result)
             print(self.result)
+
+    def bots_without_badge(self):
+        return [i for i, v in self.result.items() if not v]
 
     def save_file(self, data):
         with open('result.txt', 'w', encoding='utf-8', newline='\n') as file:
@@ -115,7 +131,28 @@ def start():
     command = input().lower()
     while command not in ['exit', 'close']:
         if command == 'get_bots':
-            print(asf.get_bots())
+            print('Получил', len(asf.get_bots()), 'ботов.')
+        elif command == 'check_badge':
+            print("""all - Если вы хотите получить значки на всех аккаунтах
+<botname> - Получить значок только на этом аккаунте""")
+            name = input()
+            if name == 'all' or name == '':
+                asf.check_badge()
+            else:
+                asf.check_badge(name)
+        elif command == 'get_badge':
+            print("""all - Если вы хотите получить значки на всех аккаунтах
+<botname> - Получить значок только на этом аккаунте""")
+            name = input()
+            if name == 'all' or name == '':
+                asf.get_badge()
+            else:
+                asf.get_badge(name)
+        elif command == 'get_bots_not_badges':
+            print(asf.bots_without_badge())
+        else:
+            print('Такой команды нет.')
+        command = input().lower()
 
 if __name__ == '__main__':
     start()
