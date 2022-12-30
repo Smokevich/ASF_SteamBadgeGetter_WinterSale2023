@@ -1,4 +1,4 @@
-# ASF Steama Badge Recipient
+# ASF Steam Badge Recipient
 
 ## Меню
 
