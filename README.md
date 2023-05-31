@@ -7,7 +7,7 @@
 
 ## О программе <a name = "about"></a>
 
-ASF Steama Badge Recipient - Программа для получения бейджа за создание реплея, который дает 50xp.
+ASF Steam Badge Recipient - Программа для получения бейджа за создание реплея, который дает 50xp.
 
 ## Начало работы <a name = "getting_started"></a>
 
